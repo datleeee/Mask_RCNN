@@ -188,8 +188,7 @@ def display_differences(image,
     boxes = np.concatenate([gt_box, pred_box])
     masks = np.concatenate([gt_mask, pred_mask], axis=-1)
     # Captions per instance show score/IoU
-    captions = ["" for m in gt_match] + ["{:.2f} / {:.2f}".format(
-        pred_score[i],
+    captions = ["" for m in gt_match] + ["{:.2f}".format(
         (overlaps[i, int(pred_match[i])]
             if pred_match[i] > -1 else overlaps[i].max()))
             for i in range(len(pred_match))]
@@ -201,7 +200,7 @@ def display_differences(image,
         boxes, masks, class_ids,
         class_names, scores=None, ax=ax,
         show_bbox=show_box, show_mask=show_mask,
-        colors=colors, captions=None,
+        colors=colors, captions=captions,
         title=title)
 
 
