@@ -261,7 +261,7 @@ def display_differences_score(image,
     masks = np.concatenate([gt_mask, pred_mask], axis=-1)
     # Captions per instance show score/IoU
     captions = ["" for m in gt_match] + ["{:.2f}".format(
-        pred_score[i]]
+        pred_score[i])]
     # Set title if not provided
     title = title or "Ground Truth and Detections\n GT=green, pred=red, captions: score/IoU"
     # Display
