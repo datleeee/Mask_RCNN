@@ -166,8 +166,44 @@ def display_instances(image, boxes, masks, class_ids, class_names,
     if auto_show:
         plt.show()
 
-
 def display_differences(image,
+                        gt_box, gt_class_id, gt_mask,
+                        pred_box, pred_class_id, pred_score, pred_mask,
+                        class_names, title="", ax=None,
+                        show_mask=True, show_box=True,
+                        iou_threshold=0.5, score_threshold=0.5):
+    """Display ground truth and prediction instances on the same image."""
+    # Match predictions to ground truth
+    gt_match, pred_match, overlaps = utils.compute_matches(
+        gt_box, gt_class_id, gt_mask,
+        pred_box, pred_class_id, pred_score, pred_mask,
+        iou_threshold=iou_threshold, score_threshold=score_threshold)
+    # Ground truth = green. Predictions = red
+    colors = [(0, 1, 0, .8)] * len(gt_match)\
+           + [(1, 0, 0, 1)] * len(pred_match)
+    # Concatenate GT and predictions
+    class_ids = np.concatenate([gt_class_id, pred_class_id])
+    scores = np.concatenate([np.zeros([len(gt_match)]), pred_score])
+    boxes = np.concatenate([gt_box, pred_box])
+    masks = np.concatenate([gt_mask, pred_mask], axis=-1)
+    # Captions per instance show score/IoU
+    captions = ["" for m in gt_match] + ["{:.2f} / {:.2f}".format(
+        pred_score[i],
+        (overlaps[i, int(pred_match[i])]
+            if pred_match[i] > -1 else overlaps[i].max()))
+            for i in range(len(pred_match))]
+    # Set title if not provided
+    title = title or "Ground Truth and Detections\n GT=green, pred=red, captions: score/IoU"
+    # Display
+    display_instances(
+        image,
+        boxes, masks, class_ids,
+        class_names, scores, ax=ax,
+        show_bbox=show_box, show_mask=show_mask,
+        colors=colors, captions=captions,
+        title=title)
+
+def display_differences_iou(image,
                         gt_box, gt_class_id, gt_mask,
                         pred_box, pred_class_id, pred_score, pred_mask,
                         class_names, title="", ax=None,
@@ -193,12 +229,46 @@ def display_differences(image,
             if pred_match[i] > -1 else overlaps[i].max()))
             for i in range(len(pred_match))]
     # Set title if not provided
-    title = title or "Ground Truth and Detections\n GT=green, pred=red, captions: score/IoU"
+    title = title or "Ground Truth and Detections\n GT=green, pred=red, captions: IoU"
     # Display
     display_instances(
         image,
         boxes, masks, class_ids,
         class_names, scores=None, ax=ax,
+        show_bbox=show_box, show_mask=show_mask,
+        colors=colors, captions=captions,
+        title=title)
+
+def display_differences_score(image,
+                        gt_box, gt_class_id, gt_mask,
+                        pred_box, pred_class_id, pred_score, pred_mask,
+                        class_names, title="", ax=None,
+                        show_mask=True, show_box=True,
+                        iou_threshold=0.5, score_threshold=0.5):
+    """Display ground truth and prediction instances on the same image."""
+    # Match predictions to ground truth
+    gt_match, pred_match, overlaps = utils.compute_matches(
+        gt_box, gt_class_id, gt_mask,
+        pred_box, pred_class_id, pred_score, pred_mask,
+        iou_threshold=iou_threshold, score_threshold=score_threshold)
+    # Ground truth = green. Predictions = red
+    colors = [(0, 1, 0, .8)] * len(gt_match)\
+           + [(1, 0, 0, 1)] * len(pred_match)
+    # Concatenate GT and predictions
+    class_ids = np.concatenate([gt_class_id, pred_class_id])
+    scores = np.concatenate([np.zeros([len(gt_match)]), pred_score])
+    boxes = np.concatenate([gt_box, pred_box])
+    masks = np.concatenate([gt_mask, pred_mask], axis=-1)
+    # Captions per instance show score/IoU
+    captions = ["" for m in gt_match] + ["{:.2f}".format(
+        pred_score[i]]
+    # Set title if not provided
+    title = title or "Ground Truth and Detections\n GT=green, pred=red, captions: score/IoU"
+    # Display
+    display_instances(
+        image,
+        boxes, masks, class_ids,
+        class_names, scores, ax=ax,
         show_bbox=show_box, show_mask=show_mask,
         colors=colors, captions=captions,
         title=title)
